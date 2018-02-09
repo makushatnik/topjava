@@ -3,11 +3,11 @@ package ru.javawebinar.topjava.util;
 import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.model.UserMealWithExceed;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * GKislin
@@ -24,12 +24,39 @@ public class UserMealsUtil {
                 new UserMeal(LocalDateTime.of(2015, Month.MAY, 31,20,0), "Ужин", 510)
         );
         getFilteredWithExceeded(mealList, LocalTime.of(7, 0), LocalTime.of(12,0), 2000);
-//        .toLocalDate();
-//        .toLocalTime();
     }
 
-    public static List<UserMealWithExceed>  getFilteredWithExceeded(List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO return filtered list with correctly exceeded field
-        return null;
+    public static List<UserMealWithExceed>  getFilteredWithExceeded(
+            List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+        List<UserMealWithExceed> res = new ArrayList<>();
+        HashMap<LocalDate, Integer> tmp = new HashMap<>();
+
+        int len = mealList.size();
+        for (int i = 0; i < len; i++) {
+            UserMeal curEl = mealList.get(i);
+            LocalDate curDate = curEl.getDateTime().toLocalDate();
+            if (tmp.containsKey(curDate)) {
+                tmp.put(curDate, tmp.get(curDate) + curEl.getCalories());
+            } else {
+                tmp.put(curDate, curEl.getCalories());
+            }
+        }
+        for (Map.Entry<LocalDate, Integer> entry : tmp.entrySet()) {
+            if (entry.getValue() > caloriesPerDay) {
+                for (int i = 0; i < len; i++) {
+                    UserMeal curEl = mealList.get(i);
+                    if (!curEl.getDateTime().toLocalDate().equals(entry.getKey())) continue;
+
+                    if (curEl.getDateTime().toLocalDate() == entry.getKey()) {
+                        res.add(new UserMealWithExceed(
+                                curEl.getDateTime(), curEl.getDescription(),
+                                curEl.getCalories(), true
+                        ));
+                    }
+                }
+            }
+        }
+
+        return res;
     }
 }
