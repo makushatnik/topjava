@@ -1,14 +1,20 @@
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime" %>
+<%@ page import="ru.javawebinar.topjava.util.TimeUtil" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <html>
 <head>
-    <title>Users</title>
+    <title>Meal list</title>
+    <style>
+        .normal {color: green;}
+        .exceeded {color: red;}
+    </style>
 </head>
 <body>
-    <h3><a href="index.html">Home</a></h3>
-    <h2>Meals</h2>
-    <table>
+    <h2><a href="index.html">Home</a></h2>
+    <h3>Meal list</h3>
+    <hr>
+    <table border="1" cellpadding="8" cellspacing="0">
         <tr>
             <th>Id</th>
             <th>Date</th>
@@ -18,12 +24,12 @@
             <th>&nbsp;</th>
         </tr>
     <c:forEach var="meal" items="${mealList}">
-        <tr style="color: ${meal.exceed == true ? 'red' : 'green'};">
+        <jsp:useBean id="meal" scope="page" type="ru.javawebinar.topjava.model.MealWithExceed"/>
+        <tr class="${meal.exceed == true ? 'exceeded' : 'normal'};">
             <td>${meal.id}</td>
             <td>
-                <!--javatime:parseLocalDateTime value="${meal.dateTime}" pattern="yyyy-MM-dd HH:mm" var="parsedDate"/>
-                ${parsedDate}-->
-                ${meal.dateTime.format(formatter)}
+                <%= TimeUtil.toString(meal.getDateTime()) %>
+                <%--${meal.dateTime.format(formatter)}--%>
             </td>
             <td>${meal.description}</td>
             <td>${meal.calories}</td>
