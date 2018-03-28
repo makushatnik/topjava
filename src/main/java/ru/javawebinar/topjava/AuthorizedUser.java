@@ -9,11 +9,7 @@ public class AuthorizedUser {
         return id;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
+    public static void setId(int id) {
         AuthorizedUser.id = id;
     }
 

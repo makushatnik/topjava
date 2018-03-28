@@ -6,6 +6,8 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFound;
@@ -28,9 +30,15 @@ public class MealServiceImpl implements MealService {
 
     @Override
     public void delete(int id, int userId) throws NotFoundException {
-        Meal meal = repository.get(id, userId);
-        if (meal == null) throw new NotFoundException("");
-        repository.delete(id);
+        if (!repository.delete(id, userId)) throw new NotFoundException("");
+    }
+
+    @Override
+    public void deleteAll(int userId) throws NotFoundException {
+        List<Meal> meals = new ArrayList<>(repository.getAll(userId));
+        if (meals.isEmpty()) throw new NotFoundException("");
+        for (Meal meal : meals)
+            repository.delete(meal.getId(), userId);
     }
 
     @Override
@@ -47,6 +55,11 @@ public class MealServiceImpl implements MealService {
 
     @Override
     public List<Meal> getAll(int userId) {
-        return repository.getAll(userId);
+        return (List<Meal>) repository.getAll(userId);
+    }
+
+    @Override
+    public List<Meal> getBetweenDateTimes(LocalDateTime startDate, LocalDateTime endDate, int userId) {
+        return new ArrayList<>(repository.getBetween(startDate, endDate, userId));
     }
 }
