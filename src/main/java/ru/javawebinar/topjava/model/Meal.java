@@ -1,16 +1,32 @@
 package ru.javawebinar.topjava.model;
 
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
+import org.hibernate.validator.constraints.Range;
+
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+@NamedQueries({
+    @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.id=:id AND m.user.id=:userId"),
+    @NamedQuery(name = Meal.BETWEEN, query = "SELECT u FROM Meal m WHERE m.date_time<=?1 AND m.date_time>=?2 AND " +
+        "m.user.id=?3"),
+    @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT u FROM Meal m ORDER BY m.date_time DESC"),
+})
+@Entity
+@Table(name = "meals", uniqueConstraints = {@UniqueConstraint(columnNames = "user_id, date_time",
+        name = "meals_unique_user_datetime_idx")})
 public class Meal extends AbstractBaseEntity {
+    public static final String DELETE = "Meal.delete";
+    public static final String BETWEEN = "Meal.getBetween";
+    public static final String ALL_SORTED = "Meal.getAllSorted";
+
+    @Column(name = "date_time", columnDefinition = "timestamp")
     private LocalDateTime dateTime;
 
     private String description;
 
+    @Range(min = 10, max = 10000)
     private int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
