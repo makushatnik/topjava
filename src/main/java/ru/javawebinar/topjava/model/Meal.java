@@ -3,33 +3,40 @@ package ru.javawebinar.topjava.model;
 import org.hibernate.validator.constraints.Range;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @NamedQueries({
+    @NamedQuery(name = Meal.GET, query = "SELECT m FROM Meal m WHERE m.id=:id AND m.user.id=:userId"),
     @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.id=:id AND m.user.id=:userId"),
-    @NamedQuery(name = Meal.BETWEEN, query = "SELECT u FROM Meal m WHERE m.date_time<=?1 AND m.date_time>=?2 AND " +
-        "m.user.id=?3"),
-    @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT u FROM Meal m ORDER BY m.date_time DESC"),
+    @NamedQuery(name = Meal.DELETE_ALL, query = "DELETE FROM Meal m WHERE m.user.id=:userId"),
+    @NamedQuery(name = Meal.BETWEEN, query = "SELECT m FROM Meal m WHERE m.date_time>=:after AND " +
+        "m.date_time<=:before AND m.user.id=:userId ORDER BY m.dateTime DESC"),
+    @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT m FROM Meal m ORDER BY m.dateTime DESC"),
 })
 @Entity
 @Table(name = "meals", uniqueConstraints = {@UniqueConstraint(columnNames = "user_id, date_time",
         name = "meals_unique_user_datetime_idx")})
 public class Meal extends AbstractBaseEntity {
+    public static final String GET = "Meal.get";
     public static final String DELETE = "Meal.delete";
+    public static final String DELETE_ALL = "Meal.deleteAll";
     public static final String BETWEEN = "Meal.getBetween";
     public static final String ALL_SORTED = "Meal.getAllSorted";
 
-    @Column(name = "date_time", columnDefinition = "timestamp")
+    @Column(name = "date_time", nullable = false)
     private LocalDateTime dateTime;
 
+    @NotEmpty
     private String description;
 
     @Range(min = 10, max = 10000)
     private int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public Meal() {

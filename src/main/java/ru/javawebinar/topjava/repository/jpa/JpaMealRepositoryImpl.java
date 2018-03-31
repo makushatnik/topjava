@@ -1,6 +1,8 @@
 package ru.javawebinar.topjava.repository.jpa;
 
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.User;
@@ -12,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class JpaMealRepositoryImpl implements MealRepository {
 
     @PersistenceContext
@@ -25,10 +27,11 @@ public class JpaMealRepositoryImpl implements MealRepository {
         meal.setUser(ref);
         if (meal.isNew()) {
             em.persist(meal);
-            return meal;
         } else {
-            return em.merge(meal);
+            if (get(meal.getId(), userId) == null) return null;
+            em.merge(meal);
         }
+        return meal;
     }
 
     @Override
@@ -41,20 +44,30 @@ public class JpaMealRepositoryImpl implements MealRepository {
     }
 
     @Override
+    @Transactional
+    public void deleteAll(int userId) {
+        em.createNamedQuery(Meal.DELETE_ALL).setParameter("userId", userId);
+    }
+
+    @Override
     public Meal get(int id, int userId) {
-        return em.find(Meal.class, id);
+        List<Meal> meals = em.createNamedQuery(Meal.GET, Meal.class)
+                .setParameter("id", id)
+                .setParameter("userId", userId)
+                .getResultList();
+        return meals.size() == 0 ? null : DataAccessUtils.requiredSingleResult(meals);
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        return em.createNamedQuery(Meal.ALL_SORTED, Meal.class).getResultList();
+        return em.createNamedQuery(Meal.ALL_SORTED, Meal.class).setParameter("userId", userId).getResultList();
     }
 
     @Override
     public List<Meal> getBetween(LocalDateTime startDate, LocalDateTime endDate, int userId) {
         return em.createNamedQuery(Meal.BETWEEN, Meal.class)
-                .setParameter("startDate", startDate)
-                .setParameter("endDate", endDate)
+                .setParameter("after", startDate)
+                .setParameter("before", endDate)
                 .setParameter("userId", userId)
                 .getResultList();
     }
